@@ -1,0 +1,38 @@
+<!-- 本launch为使用px4_sender进行机载控制时的机载端启动脚本 -->
+<launch>
+	<!-- 启动MAVROS -->
+	<!-- 不同机载电脑,注意修改fcu_url至正确的端口号及波特率 -->
+	<node pkg="mavros" type="mavros_node" name="mavros" output="screen">
+		<param name="fcu_url" value="/dev/ttyTHS0:921600" />
+		<!--param name="gcs_url" value="udp://@192.168.31.46" / -->
+		<param name="gcs_url" value="" />
+		<param name="target_system_id" value="1" />
+		<param name="target_component_id" value="1" />
+		<rosparam command="load" file="$(find p450_experiment)/config/mavros_config/px4_pluginlists_gps.yaml" />
+		<rosparam command="load" file="$(find p450_experiment)/config/mavros_config/px4_config_gps.yaml" />
+	</node>
+
+	<!-- 启动Prometheus代码 -->
+	<!-- run the px4_pos_estimator.cpp -->
+	<arg name="input_source" default="9"/>
+	<arg name="rate_hz" default="30"/>
+	<node pkg="prometheus_control" type="px4_pos_estimator" name="px4_pos_estimator" output="screen">
+		<!-- 定位数据输入源 0 for vicon， 1 for 激光SLAM, 2 for gazebo ground truth, 3 for T265 -->
+		<param name="input_source" value="$(arg input_source)" />
+		<param name="rate_hz" value="$(arg rate_hz)" />
+	</node>
+	
+	<!-- run the px4_sender.cpp -->
+	<node pkg="prometheus_control" type="px4_sender" name="px4_sender" output="screen">
+		<rosparam command="load" file="$(find p450_experiment)/config/prometheus_control_config/px4_sender_outdoor.yaml"/>
+	</node>
+
+	<!-- run the ground_station.cpp -->
+	<node pkg="prometheus_station" type="ground_station" name="ground_station" output="screen" launch-prefix="gnome-terminal --tab --">	
+	</node>
+
+	<!-- run the ground_station_msg.cpp -->
+	<node pkg="prometheus_station" type="ground_station_msg" name="ground_station_msg" output="screen" launch-prefix="gnome-terminal --tab --">	
+	</node>
+</launch>
+

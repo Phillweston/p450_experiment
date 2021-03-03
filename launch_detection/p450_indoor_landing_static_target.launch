@@ -1,0 +1,50 @@
+<launch>
+
+    <include file="$(find prometheus_detection)/launch/web_cam0.launch">
+    </include>
+
+	<!-- run the landpad_det.cpp -->
+    <node pkg="prometheus_detection" type="landpad_det" name="landpad_det" output="screen">
+        <param name="camera_topic" type="string" value="/prometheus/camera/rgb/image_raw" />
+        <param name="camera_info" type="string" value="$(find p450_experiment)/config/prometheus_detection_config/camera_param.yaml" />
+    </node>
+
+
+	<!-- run the autonomous_landing.cpp -->
+	<node pkg="prometheus_mission" type="autonomous_landing" name="autonomous_landing" output="screen" launch-prefix="gnome-terminal --">
+		<!-- 仿真模式 - 区别在于是否自动切换offboard模式 -->
+		<!-- 2021.1.18 真实飞机该参数为false -->
+		<param name="sim_mode" value="false" />
+		<!-- 悬停模式 - 仅用于观察检测结果 -->
+		<!-- 2021.1.18 第一次飞行还是建议先使用悬停，观察检测结果是否正常 -->
+		<param name="hold_mode" value="false" />
+		<!-- 是否使用降落板绝对高度 -->
+		<!-- 2021.1.18 降落板在地面上静止，高度均为0.01m -->
+		<param name="use_pad_height" value="true" />
+		<param name="pad_height" value="0.01" />
+		<!-- 起始点 -->
+		<!-- 2021.1.18 起始点尽量低一点，起飞至1m -->
+		<param name="start_point_x" value="0.0" />
+		<param name="start_point_y" value="0.0" />
+		<param name="start_point_z" value="0.8" />
+		<!-- 相机安装偏差 -->
+		<!-- 2021.1.18 相机偏移量优化 -->
+		<param name="camera_offset_x" value="0.17" />
+		<param name="camera_offset_y" value="-0.09" />
+		<param name="camera_offset_z" value="-0.07" />
+		<!-- 追踪控制参数 -->
+		<!-- 2021.1.18 飞机离地高度和相机中心相对与二维码中心的直线距离小于等于0.3,触发land指令 -->
+		<param name="kpx_land" value="0.4" />
+		<param name="kpy_land" value="0.5" />
+		<param name="kpz_land" value="0.08" />
+		<param name="arm_height_to_ground" value="0.3" />
+		<param name="arm_distance_to_pad" value="0.3" />
+		<!-- 目标是否移动及其速度 -->
+		<!-- 2021.1.18 该launch文件为静态目标降落,无需在此修改 -->
+		<param name="moving_target" value="false" />
+		<param name="target_vel_x" value="0.0" />
+		<param name="target_vel_y" value="0.0" />
+	</node>
+
+
+</launch>
